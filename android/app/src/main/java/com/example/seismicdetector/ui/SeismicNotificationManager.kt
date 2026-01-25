@@ -1,5 +1,6 @@
 package com.example.seismicdetector.ui
 
+import android.app.Notification
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
@@ -11,7 +12,6 @@ import com.example.seismicdetector.domain.DetectionResult
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.random.Random
 
 @Singleton
 class SeismicNotificationManager @Inject constructor(
@@ -21,26 +21,26 @@ class SeismicNotificationManager @Inject constructor(
     private val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
     companion object {
-        const val CHANNEL_ID = "SEISMIC_ALERTS"
-        const val SERVICE_CHANNEL_ID = "SEISMIC_SERVICE"
+        const val CHANNEL_ALERTS = "SEISMIC_ALERTS"
+        const val CHANNEL_SERVICE = "SEISMIC_SERVICE"
+        const val NOTIFICATION_ID_SERVICE = 1
     }
 
     fun showEarthquakeAlert(detection: DetectionResult.EarthquakeDetected) {
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
-        val pendingIntent: PendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+        val pendingIntent: PendingIntent = PendingIntent.getActivity(
+            context, 
+            0, 
+            intent, 
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
 
         val vibrationPattern = longArrayOf(0, 500, 200, 500)
-
-        // Color based on intensity (approximate)
-        // 0-1: Local weak -> Default
-        // 2-3: Yellow
-        // 4-5: Red
         
-        // This is a high priority notification
-        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.mipmap.ic_launcher) // Ensure this exists or use system icon
+        val builder = NotificationCompat.Builder(context, CHANNEL_ALERTS)
+            .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle("⚠️ TERREMOTO RILEVATO")
             .setContentText("Intensità: ${detection.intensity} - PGA: ${detection.pga} m/s²")
             .setPriority(NotificationCompat.PRIORITY_MAX)
@@ -48,22 +48,27 @@ class SeismicNotificationManager @Inject constructor(
             .setVibrate(vibrationPattern)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
+            .setFullScreenIntent(pendingIntent, true) // For high-priority alerts
 
-        // Use a unique ID to stack notifications or defined ID to update
-        val notificationId = (System.currentTimeMillis() % 10000).toInt()
+        val notificationId = (System.currentTimeMillis() % 10000).toInt() + 100
         notificationManager.notify(notificationId, builder.build())
     }
     
-    // Notification for the foreground service
-    fun getServiceNotification(): android.app.Notification {
+    fun getServiceNotification(): Notification {
         val intent = Intent(context, MainActivity::class.java)
-        val pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+        val pendingIntent = PendingIntent.getActivity(
+            context, 
+            0, 
+            intent, 
+            PendingIntent.FLAG_IMMUTABLE
+        )
 
-        return NotificationCompat.Builder(context, CHANNEL_ID) // Using same channel for simplicity or create separate LOW priority
+        return NotificationCompat.Builder(context, CHANNEL_SERVICE)
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle("Seismic Detector Active")
             .setContentText("Monitoring sensors in background...")
             .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .setContentIntent(pendingIntent)
             .setOngoing(true)
             .build()
