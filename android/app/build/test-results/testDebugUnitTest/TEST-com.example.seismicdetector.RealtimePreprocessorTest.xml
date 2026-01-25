@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.seismicdetector.RealtimePreprocessorTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-01-25T17:46:41.627Z" hostname="DESKTOP-T4136OT" time="0.014">
+  <properties/>
+  <testcase name="test z-score normalization stats" classname="com.example.seismicdetector.RealtimePreprocessorTest" time="0.013"/>
+  <testcase name="test detrend removes linear trend" classname="com.example.seismicdetector.RealtimePreprocessorTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
