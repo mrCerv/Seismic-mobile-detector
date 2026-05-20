@@ -26,6 +26,9 @@ data/raw/phyphox/noise/*.csv
 data/processed/*.npz
 data/processed/*.npy
 
+# Claude Code agent worktrees
+.claude/
+
 # IDE
 .idea/
 *.iml
