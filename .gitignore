@@ -17,9 +17,14 @@ __pycache__/
 venv/
 ml/models/
 ml/results/
-data/raw/stead/
-data/raw/phyphox/
-data/processed/
+
+# Dataset files (large binaries — not tracked in git)
+data/raw/stead/*.hdf5
+data/raw/stead/*.h5
+data/raw/phyphox/earthquake/*.csv
+data/raw/phyphox/noise/*.csv
+data/processed/*.npz
+data/processed/*.npy
 
 # IDE
 .idea/
