@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Divider
@@ -71,6 +73,7 @@ fun SettingsScreen(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
@@ -89,7 +92,7 @@ fun SettingsScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            
+
             Divider()
 
             // Toggles
@@ -98,24 +101,60 @@ fun SettingsScreen(
                 checked = settings.enableNotifications,
                 onCheckedChange = { viewModel.updateSettings(settings.copy(enableNotifications = it)) }
             )
-            
+
             SettingSwitch(
                 title = "Vibration",
                 checked = settings.enableVibration,
                 onCheckedChange = { viewModel.updateSettings(settings.copy(enableVibration = it)) }
             )
-            
-             SettingSwitch(
+
+            SettingSwitch(
                 title = "Sound",
                 checked = settings.enableSound,
                 onCheckedChange = { viewModel.updateSettings(settings.copy(enableSound = it)) }
             )
-            
-             SettingSwitch(
+
+            SettingSwitch(
                 title = "Record Waveform",
                 description = "Save CSV data for detected events",
                 checked = settings.recordWaveform,
                 onCheckedChange = { viewModel.updateSettings(settings.copy(recordWaveform = it)) }
+            )
+
+            Divider()
+
+            // P-wave alert toggle
+            SettingSwitch(
+                title = "Allerta P-wave preventiva",
+                description = "Abilita il rilevamento precoce dell'onda P tramite STA/LTA",
+                checked = settings.enablePWaveAlert,
+                onCheckedChange = { viewModel.updateSettings(settings.copy(enablePWaveAlert = it)) }
+            )
+
+            // STA/LTA threshold slider
+            Column {
+                Text("Sensibilità P-wave (STA/LTA): ${"%.1f".format(settings.staSltaThreshold)}")
+                Slider(
+                    value = settings.staSltaThreshold,
+                    onValueChange = { viewModel.updateSettings(settings.copy(staSltaThreshold = it)) },
+                    valueRange = 1.5f..5.0f,
+                    steps = 7
+                )
+                Text(
+                    "Soglia STA/LTA per il trigger P-wave (basso = più sensibile, alto = meno falsi positivi).",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            Divider()
+
+            // Share anonymous data
+            SettingSwitch(
+                title = "Condividi dati anonimi per la ricerca",
+                description = "Invia rilevazioni anonimizzate alla rete di ricerca (nessun dato personale)",
+                checked = settings.shareDataConsent,
+                onCheckedChange = { viewModel.updateSettings(settings.copy(shareDataConsent = it)) }
             )
         }
     }

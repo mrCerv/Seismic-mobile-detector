@@ -1,3 +1,17 @@
 <resources>
     <string name="app_name">Seismic Detector</string>
+    <string name="disclaimer_title">&#9888;&#65039; Avviso Importante / Important Notice</string>
+    <string name="disclaimer_body">
+&#127470;&#127481; ITALIANO:\n\nQuesta applicazione è uno strumento di RICERCA SCIENTIFICA e DIDATTICA. NON è un sistema professionale di allerta precoce terremoti e NON sostituisce:\n• I sistemi di protezione civile ufficiali (DPC, INGV)\n• L\'allerta pubblica di emergenza IT-alert\n• Qualsiasi sistema professionale di monitoraggio sismico\n\nI FALSI POSITIVI SONO FREQUENTI a causa di vibrazioni meccaniche, traffico, e movimenti fisici. Non basare decisioni di sicurezza su questa app.\n\nCondivisione dati (opzionale): le rilevazioni anonimizzate possono essere condivise con la rete di ricerca (nessun dato personale, posizione approssimata ±1km).\n\n---\n\n&#127468;&#127463; ENGLISH:\n\nThis application is a SCIENTIFIC RESEARCH and EDUCATIONAL tool. It is NOT a professional earthquake early warning system and does NOT replace:\n• Official civil protection systems (DPC, INGV)\n• Public emergency alerts (IT-alert)\n• Any professional seismic monitoring system\n\nFALSE POSITIVES ARE FREQUENT due to mechanical vibrations, traffic, and physical movements. Do not make safety decisions based on this app.\n\nData sharing (optional): anonymized detections may be shared with the research network (no personal data, approximate location ±1km).
+    </string>
+    <string name="disclaimer_accept_research">Accetto — Solo uso ricerca / Accept — Research use only</string>
+    <string name="disclaimer_accept_local">Usa solo in locale / Use locally only</string>
+    <string name="disclaimer_share_consent">Condividi rilevazioni anonime per la ricerca</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_map">Mappa</string>
+    <string name="nav_history">Storico</string>
+    <string name="nav_settings">Impostazioni</string>
+    <string name="p_wave_alert_title">&#9889; Onda P Rilevata</string>
+    <string name="p_wave_alert_text">Possibile evento sismico in arrivo. Analisi ML in corso…</string>
+    <string name="network_confirmed_title">&#127760; Evento Confermato dalla Rete</string>
 </resources>

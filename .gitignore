@@ -1,0 +1,38 @@
+# Gradle
+.gradle/
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+*.class
+
+# Android
+android/app/src/main/assets/seismic_model.tflite
+
+# Python / ML
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+ml/models/
+ml/results/
+data/raw/stead/
+data/raw/phyphox/
+data/processed/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets
+google-services.json
+*.jks
+*.keystore
+local.properties

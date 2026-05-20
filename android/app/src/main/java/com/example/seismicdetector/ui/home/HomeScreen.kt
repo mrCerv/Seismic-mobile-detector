@@ -95,7 +95,7 @@ fun HomeScreen(
 
             // Real-time Graph
             Text(
-                "Real-time Accelerometer (Z-axis)",
+                "Real-time Linear Acceleration (X/Y/Z)",
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
@@ -207,18 +207,18 @@ fun RealtimeGraphCard(sensorData: SensorDataBatch?) {
                     // Draw Z
                     val pathZ = Path()
                     
-                    val stepX = width / sensorData.x.size.coerceAtLeast(1)
-                    
+                    val stepX = width / sensorData.linAccX.size.coerceAtLeast(1)
+
                     var started = false
-                    
+
                     // Subsample for performance if needed (1000 points is fine for Canvas)
-                    val points = sensorData.x.size
+                    val points = sensorData.linAccX.size
                     for (i in 0 until points step 2) {
                         val xPos = i * stepX
                         // Raw values
-                        val yX = midY - (sensorData.x[i] * scaleY)
-                        val yY = midY - (sensorData.y[i] * scaleY)
-                        val yZ = midY - (sensorData.z[i] * scaleY)
+                        val yX = midY - (sensorData.linAccX[i] * scaleY)
+                        val yY = midY - (sensorData.linAccY[i] * scaleY)
+                        val yZ = midY - (sensorData.linAccZ[i] * scaleY)
                         
                         if (!started) {
                             pathX.moveTo(xPos, yX)
@@ -239,9 +239,9 @@ fun RealtimeGraphCard(sensorData: SensorDataBatch?) {
                 
                 // Legend
                 Column(modifier = Modifier.align(Alignment.TopEnd)) {
-                    Text("X", color = Color.Red, style = MaterialTheme.typography.bodySmall)
-                    Text("Y", color = Color.Green, style = MaterialTheme.typography.bodySmall)
-                    Text("Z", color = Color.Cyan, style = MaterialTheme.typography.bodySmall)
+                    Text("linAccX", color = Color.Red, style = MaterialTheme.typography.bodySmall)
+                    Text("linAccY", color = Color.Green, style = MaterialTheme.typography.bodySmall)
+                    Text("linAccZ", color = Color.Cyan, style = MaterialTheme.typography.bodySmall)
                 }
             }
         }

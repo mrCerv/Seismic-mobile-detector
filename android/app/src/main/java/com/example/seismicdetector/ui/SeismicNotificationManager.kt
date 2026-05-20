@@ -9,6 +9,7 @@ import androidx.core.app.NotificationCompat
 import com.example.seismicdetector.MainActivity
 import com.example.seismicdetector.R
 import com.example.seismicdetector.domain.DetectionResult
+import com.example.seismicdetector.domain.PWaveAlert
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -54,6 +55,30 @@ class SeismicNotificationManager @Inject constructor(
         notificationManager.notify(notificationId, builder.build())
     }
     
+    fun showPWaveAlert(alert: PWaveAlert) {
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        val pendingIntent: PendingIntent = PendingIntent.getActivity(
+            context,
+            0,
+            intent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
+        val builder = NotificationCompat.Builder(context, CHANNEL_SERVICE)
+            .setSmallIcon(R.mipmap.ic_launcher)
+            .setContentTitle("⚡ Onda P Rilevata")
+            .setContentText("Possibile evento sismico in arrivo. Analisi ML in corso… (STA/LTA: ${"%.1f".format(alert.staLtaRatio)})")
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setCategory(NotificationCompat.CATEGORY_STATUS)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+
+        val notificationId = (System.currentTimeMillis() % 10000).toInt() + 200
+        notificationManager.notify(notificationId, builder.build())
+    }
+
     fun getServiceNotification(): Notification {
         val intent = Intent(context, MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(

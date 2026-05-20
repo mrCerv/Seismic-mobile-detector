@@ -96,6 +96,21 @@ dependencies {
     // Apache Commons Math (for filters)
     implementation("org.apache.commons:commons-math3:3.6.1")
 
+    // Firebase (requires google-services.json in android/app/ — see docs/SETUP.md)
+    // Uncomment after adding google-services.json and applying the plugin
+    // implementation(platform("com.google.firebase:firebase-bom:32.8.0"))
+    // implementation("com.google.firebase:firebase-firestore-ktx")
+    // implementation("com.google.firebase:firebase-analytics-ktx")
+
+    // Location for approximate coordinates
+    implementation("com.google.android.gms:play-services-location:21.2.0")
+
+    // OpenStreetMap (no API key required)
+    implementation("org.osmdroid:osmdroid-android:6.1.18")
+
+    // Coroutines for async work
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0")
+
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")

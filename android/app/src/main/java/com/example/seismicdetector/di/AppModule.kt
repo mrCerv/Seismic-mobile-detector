@@ -5,7 +5,10 @@ import android.content.Context
 import androidx.room.Room
 import com.example.seismicdetector.data.AppDatabase
 import com.example.seismicdetector.data.DetectionDao
+import com.example.seismicdetector.data.NetworkRepository
 import com.example.seismicdetector.data.SeismicRepository
+import com.example.seismicdetector.domain.CommunityCorrelator
+import com.example.seismicdetector.domain.PWaveDetector
 import com.example.seismicdetector.domain.RealtimePreprocessor
 import com.example.seismicdetector.domain.SeismicMLModel
 import com.example.seismicdetector.domain.SeismicSensorManager
@@ -46,4 +49,8 @@ object AppModule {
     fun provideRealtimePreprocessor(): RealtimePreprocessor {
         return RealtimePreprocessor()
     }
+
+    // NetworkRepository, PWaveDetector, and CommunityCorrelator use @Inject constructor
+    // and are annotated @Singleton, so Hilt provides them automatically.
+    // No explicit @Provides needed here — they are resolved via constructor injection.
 }
