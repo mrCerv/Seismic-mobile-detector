@@ -28,9 +28,9 @@ class SeismicMLModel @Inject constructor(
 
     private var interpreter: Interpreter? = null
     
-    // Input shape: [1, 1000, 3] float32
-    // 1000 * 3 * 4 bytes = 12000 bytes
-    private val inputBuffer = ByteBuffer.allocateDirect(1 * 1000 * 3 * 4).apply {
+    // Input shape: [1, 1000, 6] float32 — linear_accel(x,y,z) + gyro(x,y,z)
+    // 1000 * 6 * 4 bytes = 24000 bytes
+    private val inputBuffer = ByteBuffer.allocateDirect(1 * 1000 * 6 * 4).apply {
         order(ByteOrder.nativeOrder())
     }
 

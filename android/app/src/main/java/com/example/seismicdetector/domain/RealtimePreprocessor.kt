@@ -15,6 +15,12 @@ class RealtimePreprocessor {
         doubleArrayOf(0.29289, 0.58579, 0.29289, -0.00000, 0.17157)   // Low-pass 25Hz
     )
 
+    // Gyroscope SOS filter coefficients (0.5 - 25 Hz @ 100 Hz) — same filter, seismic gyro range is similar
+    private val sosSectionsGyro = arrayOf(
+        doubleArrayOf(0.97803, -1.95606, 0.97803, -1.95558, 0.95654), // High-pass 0.5Hz
+        doubleArrayOf(0.29289, 0.58579, 0.29289, -0.00000, 0.17157)   // Low-pass 25Hz
+    )
+
     fun preprocess(rawBuffer: FloatArray): FloatArray {
         if (rawBuffer.isEmpty()) return rawBuffer
 
@@ -22,7 +28,20 @@ class RealtimePreprocessor {
         val detrended = detrend(rawBuffer)
 
         // 2. Bandpass filter (0.5 - 25 Hz)
-        val filtered = applySosFilter(detrended)
+        val filtered = applySosFilter(detrended, sosSections)
+
+        // 3. Z-score normalization
+        return zScoreNormalize(filtered)
+    }
+
+    fun preprocessGyro(rawBuffer: FloatArray): FloatArray {
+        if (rawBuffer.isEmpty()) return rawBuffer
+
+        // 1. Detrend (Linear)
+        val detrended = detrend(rawBuffer)
+
+        // 2. Bandpass filter (0.5 - 25 Hz) using gyro filter coefficients
+        val filtered = applySosFilter(detrended, sosSectionsGyro)
 
         // 3. Z-score normalization
         return zScoreNormalize(filtered)
@@ -56,16 +75,16 @@ class RealtimePreprocessor {
         return result
     }
 
-    private fun applySosFilter(data: FloatArray): FloatArray {
+    private fun applySosFilter(data: FloatArray, sos: Array<DoubleArray>): FloatArray {
         var currentData = data
-        
-        for (sos in sosSections) {
+
+        for (section in sos) {
             val output = FloatArray(currentData.size)
             var w1 = 0.0
             var w2 = 0.0
-            
-            val b0 = sos[0]; val b1 = sos[1]; val b2 = sos[2]
-            val a1 = sos[3]; val a2 = sos[4]
+
+            val b0 = section[0]; val b1 = section[1]; val b2 = section[2]
+            val a1 = section[3]; val a2 = section[4]
 
             for (i in currentData.indices) {
                 val x = currentData[i].toDouble()

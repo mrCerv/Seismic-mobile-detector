@@ -33,27 +33,26 @@ class EarthquakeDetector @Inject constructor(
     var minPgaThreshold = 0.05f
 
     suspend fun processBatch(batch: SensorDataBatch) {
-        // 1. Preprocess each channel independently
-        // Note: RealtimePreprocessor currently takes FloatArray and returns FloatArray
-        // We need to implement it such that it handles one channel.
-        val processedX = preprocessor.preprocess(batch.x)
-        val processedY = preprocessor.preprocess(batch.y)
-        val processedZ = preprocessor.preprocess(batch.z)
-        
-        // 2. Interleave into [1000, 3] format -> [x0, y0, z0, x1, y1, z1, ...]
-        val flatInput = FloatArray(1000 * 3)
-        for (i in 0 until 1000) {
-            flatInput[i * 3 + 0] = processedX[i]
-            flatInput[i * 3 + 1] = processedY[i]
-            flatInput[i * 3 + 2] = processedZ[i]
-        }
-        
-        // 3. Inference
-        val output = mlModel.doInference(flatInput) ?: return
+        val processedLAX = preprocessor.preprocess(batch.linAccX)
+        val processedLAY = preprocessor.preprocess(batch.linAccY)
+        val processedLAZ = preprocessor.preprocess(batch.linAccZ)
+        val processedGX = preprocessor.preprocessGyro(batch.gyroX)
+        val processedGY = preprocessor.preprocessGyro(batch.gyroY)
+        val processedGZ = preprocessor.preprocessGyro(batch.gyroZ)
 
-        // 4. Logic
+        // Interleave into [1000, 6]: [la_x0, la_y0, la_z0, g_x0, g_y0, g_z0, la_x1, ...]
+        val flatInput = FloatArray(1000 * 6)
+        for (i in 0 until 1000) {
+            flatInput[i * 6 + 0] = processedLAX[i]
+            flatInput[i * 6 + 1] = processedLAY[i]
+            flatInput[i * 6 + 2] = processedLAZ[i]
+            flatInput[i * 6 + 3] = processedGX[i]
+            flatInput[i * 6 + 4] = processedGY[i]
+            flatInput[i * 6 + 5] = processedGZ[i]
+        }
+
+        val output = mlModel.doInference(flatInput) ?: return
         val result = evaluatePrediction(output)
-        
         _detectionFlow.emit(result)
     }
 
@@ -64,12 +63,8 @@ class EarthquakeDetector @Inject constructor(
         }
 
         // 2. Check PGA
-        // Note: Model predicts PGA. Sensor also has raw PGA? 
-        // We use model's predicted PGA as requested in logic flow, 
-        // OR we could calculate real PGA from sensor data.
-        // Prompt says "pga: Dense(1, linear) -> Regressione". Use model output.
         if (output.pga < minPgaThreshold) {
-             return DetectionResult.NoEvent
+            return DetectionResult.NoEvent
         }
 
         // 3. Valid Event
