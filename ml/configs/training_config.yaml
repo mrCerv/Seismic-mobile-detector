@@ -1,0 +1,19 @@
+training:
+  batch_size: 32
+  epochs: 100
+  learning_rate: 0.001
+  early_stopping_patience: 10
+  loss_weights:
+    is_earthquake: 1.0
+    intensity: 0.5
+    pga: 0.3
+    dominant_freq: 0.2
+    duration: 0.2
+data:
+  stead_path: "data/raw/stead/"
+  phyphox_path: "data/raw/phyphox/"
+  sample_rate: 100
+  window_size: 1000
+  train_ratio: 0.70
+  val_ratio: 0.15
+  test_ratio: 0.15
