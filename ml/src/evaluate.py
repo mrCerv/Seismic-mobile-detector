@@ -118,14 +118,13 @@ def main() -> None:
     d = cfg["data"]
     repo_root = Path(__file__).parents[2]
 
-    stead_paths = sorted((repo_root / d["stead_path"]).glob("*.hdf5")) + sorted(
-        (repo_root / d["stead_path"]).glob("*.h5")
-    )
-    phyphox_paths = sorted((repo_root / d["phyphox_path"]).glob("*.csv"))
+    stead_dir = repo_root / d["stead_dir"]
+    stead_paths = sorted(stead_dir.glob("*.hdf5")) + sorted(stead_dir.glob("*.h5"))
+    phyphox_root = str(repo_root / d["phyphox_dir"])
 
     _, _, test_gen = create_train_val_test_split(
         stead_paths=[str(p) for p in stead_paths],
-        phyphox_paths=[str(p) for p in phyphox_paths],
+        phyphox_root=phyphox_root,
         val_ratio=d["val_ratio"],
         test_ratio=d["test_ratio"],
         batch_size=cfg["training"]["batch_size"],

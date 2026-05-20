@@ -31,11 +31,22 @@ def z_score_normalize(data: np.ndarray) -> np.ndarray:
     return (data - np.mean(data)) / std
 
 
+def compute_dominant_freq(signal: np.ndarray, fs: float = 100.0) -> float:
+    """FFT-based dominant frequency (Hz) in the 0.5–25 Hz seismic band."""
+    n = len(signal)
+    if n == 0:
+        return 1.0
+    fft_mag = np.abs(np.fft.rfft(signal.astype(np.float64)))
+    freqs = np.fft.rfftfreq(n, d=1.0 / fs)
+    mask = (freqs >= 0.5) & (freqs <= 25.0)
+    if not mask.any():
+        return 1.0
+    dominant = float(freqs[mask][np.argmax(fft_mag[mask])])
+    return dominant if dominant > 0.0 else 1.0
+
+
 def preprocess_seismic_data(data: np.ndarray, fs: float = 100.0) -> np.ndarray:
-    """
-    Full preprocessing pipeline: Detrend -> Bandpass -> Z-Score.
-    Input shape: (N, 3) where columns are X, Y, Z.
-    """
+    """Full preprocessing pipeline for 3-channel seismic data: Detrend -> Bandpass -> Z-Score."""
     processed = np.zeros_like(data)
     for i in range(3):
         channel = data[:, i]
@@ -54,26 +65,22 @@ def preprocess_hybrid_data(data: np.ndarray, fs: float = 100.0) -> np.ndarray:
       0-2: linear acceleration (m/s²) — detrend + bandpass(0.5-25 Hz) + z-score
       3-5: gyroscope (rad/s)          — detrend + bandpass(0.1-25 Hz) + z-score
 
-    Gyroscope uses a lower bandpass floor (0.1 Hz) because slow rotational drift
-    can still carry meaningful low-frequency seismic information.
+    Zero-valued channels (e.g. STEAD gyro padding) pass through as zeros via
+    the z_score_normalize guard (std < 1e-6 → zeros).
     """
-    assert data.shape[1] == 6, f"Expected 6 channels, got {data.shape[1]}"
+    assert data.shape == (1000, 6), f"Expected (1000, 6), got {data.shape}"
     processed = np.zeros_like(data, dtype=np.float32)
 
-    # Channels 0-2: linear acceleration
     for i in range(3):
         ch = data[:, i].astype(np.float64)
         ch = detrend_signal(ch)
         ch = apply_bandpass_filter(ch, lowcut=0.5, highcut=25.0, fs=fs)
-        ch = z_score_normalize(ch)
-        processed[:, i] = ch
+        processed[:, i] = z_score_normalize(ch)
 
-    # Channels 3-5: gyroscope
     for i in range(3, 6):
         ch = data[:, i].astype(np.float64)
         ch = detrend_signal(ch)
         ch = apply_bandpass_filter(ch, lowcut=0.1, highcut=25.0, fs=fs)
-        ch = z_score_normalize(ch)
-        processed[:, i] = ch
+        processed[:, i] = z_score_normalize(ch)
 
     return processed

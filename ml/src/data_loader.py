@@ -10,7 +10,7 @@ import tensorflow as tf
 from sklearn.model_selection import train_test_split
 
 from augmentation import apply_augmentation
-from preprocessing import preprocess_hybrid_data
+from preprocessing import compute_dominant_freq, preprocess_hybrid_data
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Constants
@@ -63,9 +63,19 @@ def _load_stead_waveform(filepath: str, group_path: str, key: str) -> Tuple[np.n
         data[:, :3] = waveform.astype(np.float32)
 
         attrs = dict(ds.attrs) if hasattr(ds, "attrs") else {}
-        pga_val = float(attrs.get("p_peak_ground_velocity", attrs.get("PGA", 0.0)))
-        freq_val = float(attrs.get("dominant_frequency", attrs.get("snr_db", 1.0)))
-        dur_val = float(attrs.get("coda_end_sample", 100)) / 100.0
+
+        # PGA: prefer p_peak_ground_velocity (cm/s) from metadata; fall back to
+        # waveform max on the Z channel (index 0 in STEAD Z/N/E ordering).
+        pga_attr = attrs.get("p_peak_ground_velocity") or attrs.get("p_peak_ground_acceleration")
+        pga_val = abs(float(pga_attr)) if pga_attr is not None else float(np.max(np.abs(waveform[:, 0])))
+
+        # Dominant frequency via FFT on raw Z channel — snr_db is NOT a frequency.
+        freq_val = compute_dominant_freq(waveform[:, 0].astype(np.float64), fs=100.0)
+
+        # Duration in seconds from P-arrival to coda end.
+        p_arrival = float(attrs.get("p_arrival_sample", 0))
+        coda_end = float(attrs.get("coda_end_sample", p_arrival + 100))
+        dur_val = max(0.0, (coda_end - p_arrival) / 100.0)
 
         label = {
             "is_earthquake": np.array([is_eq], dtype=np.float32),
@@ -176,14 +186,30 @@ def _parse_phyphox_csv(filepath: str, is_earthquake: int) -> List[Tuple[np.ndarr
     n_windows = len(raw) // 1000
     samples = []
     for i in range(n_windows):
-        window = preprocess_hybrid_data(raw[i * 1000 : (i + 1) * 1000])
-        pga_val = float(np.max(np.abs(window[:, :3]))) if is_earthquake else 0.0
+        raw_window = raw[i * 1000 : (i + 1) * 1000]
+
+        # All labels computed on RAW data before preprocessing.
+        if is_earthquake:
+            pga_val = float(np.max(np.abs(raw_window[:, :3])))
+            # Dominant freq via FFT on Z-axis equivalent (col 2 = accel Z).
+            freq_val = compute_dominant_freq(raw_window[:, 2].astype(np.float64), fs=100.0)
+            # Duration: fraction of samples whose acceleration magnitude exceeds
+            # 10 % of the peak — gives a robust signal-energy-based estimate.
+            accel_mag = np.linalg.norm(raw_window[:, :3], axis=1)
+            max_amp = float(np.max(accel_mag))
+            dur_val = float(np.sum(accel_mag > 0.1 * max_amp)) / 100.0 if max_amp > 1e-6 else 0.0
+        else:
+            pga_val = 0.0
+            freq_val = 0.0
+            dur_val = 0.0
+
+        window = preprocess_hybrid_data(raw_window)
         label = {
             "is_earthquake": np.array([is_earthquake], dtype=np.float32),
             "intensity": _pga_to_intensity(pga_val) if is_earthquake else 0,
             "pga": np.array([pga_val], dtype=np.float32),
-            "dominant_freq": np.array([0.0], dtype=np.float32),
-            "duration": np.array([10.0 if is_earthquake else 0.0], dtype=np.float32),
+            "dominant_freq": np.array([freq_val], dtype=np.float32),
+            "duration": np.array([dur_val], dtype=np.float32),
         }
         samples.append((window, label))
     return samples
