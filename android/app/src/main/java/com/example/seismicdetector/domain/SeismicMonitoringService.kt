@@ -84,17 +84,18 @@ class SeismicMonitoringService : Service() {
             }
         }
 
-        // P-wave detection: feed last linAccZ sample from each batch
+        // P-wave detection: feed the newest 100 samples of linAccZ from each batch
         pWaveJob?.cancel()
         pWaveJob = serviceScope.launch {
-            val settings = preferencesManager.settings.value
-            pWaveDetector.setThreshold(settings.staSltaThreshold)
+            pWaveDetector.setThreshold(preferencesManager.settings.value.staSltaThreshold)
 
             sensorManager.sensorDataFlow.collect { batch ->
                 if (preferencesManager.settings.value.enablePWaveAlert) {
-                    // Feed the last sample of linAccZ from the batch
-                    val lastSample = batch.linAccZ.last()
-                    pWaveDetector.processSample(lastSample)
+                    // Each batch is a 1000-sample window; the last 100 are the newly arrived samples
+                    val newSamples = batch.linAccZ.takeLast(100)
+                    for (sample in newSamples) {
+                        pWaveDetector.processSample(sample)
+                    }
                 }
             }
         }
